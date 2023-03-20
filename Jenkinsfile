@@ -19,7 +19,7 @@ pipeline {
           def instance = sh(script: "aws ec2 describe-instances --filters \"Name=tag:Name,Values=${params.ec2_instance_name}\" --query \"Reservations[*].Instances[*].[InstanceId]\" --output=text --region=ap-southeast-3", returnStdout: true).trim()
 
           if (!instance) {
-            def command = "aws ec2 run-instances --image-id ami-0d2da56e47a445b08 --count 1 --instance-type ${params.ec2_instance_type} --key-name ${params.ec2_key_name} --security-group-ids sg-036bf561ef591b061 --subnet-id subnet-0f0f742503601c2cf --associate-public-ip-address --tag-specifications \"ResourceType=instance,Tags=[{Key=Name,Value=${params.ec2_instance_name}}]\" --region=ap-southeast-3"
+            def command = "aws ec2 run-instances --image-id ami-0d2da56e47a445b08 --count 1 --instance-type ${params.ec2_instance_type} --security-group-ids sg-036bf561ef591b061 --subnet-id subnet-0f0f742503601c2cf --associate-public-ip-address --tag-specifications \"ResourceType=instance,Tags=[{Key=Name,Value=${params.ec2_instance_name}}]\" --region=ap-southeast-3"
 
             instance = sh(script: command, returnStdout: true).trim()
           }
