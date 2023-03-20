@@ -47,7 +47,7 @@ services:
       options:
         awslogs-group: "/logs/nginx/wp-demo"
         awslogs-region: ap-southeast-3
-        awslogs-create-group: true
+        awslogs-create-group: "true"
     networks:
       - app-network
 
