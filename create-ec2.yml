@@ -11,43 +11,49 @@
     count: 1
 
   tasks:
-    - name: Set AWS Endpoint
-      set_fact:
-        boto_endpoints_path: "{{ playbook_dir }}/endpoints.json"
-
     - name: Create a security group
-      local_action: 
-        module: ec2_group
-        name: "{{ security_group }}"
-        description: Security Group for demo server
+      boto3:
         region: "{{ region }}"
-        rules:
-          - proto: tcp
-            from_port: 80
-            to_port: 80
-            cidr_ip: 0.0.0.0/0
-          - proto: tcp
-            from_port: 443
-            to_port: 443
-            cidr_ip: 0.0.0.0/0
-        rules_egress:
-          - proto: all
-            cidr_ip: 0.0.0.0/0
+        service: ec2
+        api_call: create_security_group
+        security_group_name: "{{ security_group }}"
+        description: Security Group for demo server
+        ingress_rules:
+          - IpProtocol: tcp
+            FromPort: 80
+            ToPort: 80
+            IpRanges:
+              - CidrIp: 0.0.0.0/0
+          - IpProtocol: tcp
+            FromPort: 443
+            ToPort: 443
+            IpRanges:
+              - CidrIp: 0.0.0.0/0
+        egress_rules:
+          - IpProtocol: all
+            IpRanges:
+              - CidrIp: 0.0.0.0/0
       register: basic_firewall
 
     - name: Launch the new EC2 Instance
-      local_action: ec2 
-                    group={{ security_group }} 
-                    instance_type={{ instance_type }} 
-                    image={{ image }} 
-                    wait=true 
-                    region={{ region }} 
-                    count={{ count }}
+      boto3:
+        region: "{{ region }}"
+        service: ec2
+        api_call: run_instances
+        image_id: "{{ image }}"
+        instance_type: "{{ instance_type }}"
+        min_count: "{{ count }}"
+        max_count: "{{ count }}"
+        security_group_ids:
+          - "{{ basic_firewall.group_id }}"
       register: ec2
 
     - name: Add Tagging to EC2 instance
-      local_action: ec2_tag resource={{ item.id }} region={{ region }} state=present
-      with_items: "{{ ec2.instances }}"
-      args:
+      boto3:
+        region: "{{ region }}"
+        service: ec2
+        api_call: create_tags
+        resources: "{{ ec2.instances | map(attribute='id') | list }}"
         tags:
-          Name: "{{ instance_name }}"
+          - Key: Name
+            Value: "{{ instance_name }}"
