@@ -8,6 +8,7 @@
     image: ami-0d2da56e47a445b08
     security_group: demo-server-sg
     region: ap-southeast-3
+    count: 1
 
   tasks:
     - name: Create a security group
@@ -37,7 +38,7 @@
                     image={{ image }} 
                     wait=true 
                     region={{ region }} 
-                    count=1
+                    count={{ count }}
        register: ec2
 
     - name: Add Tagging to EC2 instance
