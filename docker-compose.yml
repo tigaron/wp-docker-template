@@ -42,6 +42,12 @@ services:
     volumes:
       - wordpress:/var/www/html
       - ./nginx:/etc/nginx/conf.d
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: "/logs/nginx/wp-demo"
+        awslogs-region: ap-southeast-3
+        awslogs-create-group: true
     networks:
       - app-network
 
