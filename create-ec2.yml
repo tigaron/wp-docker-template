@@ -39,7 +39,7 @@
                     wait=true 
                     region={{ region }} 
                     count={{ count }}
-       register: ec2
+      register: ec2
 
     - name: Add Tagging to EC2 instance
       local_action: ec2_tag resource={{ item.id }} region={{ region }} state=present
