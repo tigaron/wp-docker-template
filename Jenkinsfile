@@ -23,7 +23,7 @@ pipeline {
 
           if (!instance) {
             echo '||| no existing ec2 instance found, creating new instance'
-            def newInstance = sh(script: "aws ec2 run-instances --image-id ami-0d2da56e47a445b08 --count 1 --instance-type ${params.ec2_instance_type} --security-group-ids sg-036bf561ef591b061 --subnet-id subnet-0f0f742503601c2cf --iam-instance-profile Name=CloudWatchAgentServerRole --associate-public-ip-address --tag-specifications \"ResourceType=instance,Tags=[{Key=Name,Value=${params.ec2_instance_name}}]\" --region=ap-southeast-3 --query \"Instances[*].InstanceId\" --output=text", returnStdout: true).trim()
+            def newInstance = sh(script: "aws ec2 run-instances --image-id ami-0da77912d318eac21 --count 1 --instance-type ${params.ec2_instance_type} --security-group-ids sg-036bf561ef591b061 --subnet-id subnet-0f0f742503601c2cf --iam-instance-profile Name=CloudWatchAgentServerRole --associate-public-ip-address --tag-specifications \"ResourceType=instance,Tags=[{Key=Name,Value=${params.ec2_instance_name}}]\" --region=ap-southeast-3 --query \"Instances[*].InstanceId\" --output=text", returnStdout: true).trim()
 
             sh "aws ec2 wait instance-status-ok --instance-ids ${newInstance} --region=ap-southeast-3"
             echo '>>> new ec2 instance created'
