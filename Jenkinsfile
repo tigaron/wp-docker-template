@@ -3,7 +3,7 @@ pipeline {
 
   parameters {
     string(name: 'ec2_instance_name', defaultValue: '', description: 'Name of the EC2 instance')
-    string(name: 'ec2_instance_type', defaultValue: '', description: 'Type of the EC2 instance')
+    string(name: 'ec2_instance_type', defaultValue: 't3.micro', description: 'Type of the EC2 instance')
   }
 
   stages {
@@ -33,7 +33,7 @@ pipeline {
           def instance = sh(script: "aws ec2 describe-instances --filters \"Name=tag:Name,Values=${params.ec2_instance_name}\" --query \"Reservations[*].Instances[*].[InstanceId]\" --output=text --region=ap-southeast-3", returnStdout: true).trim()
           def command = "cd /home/ssm-user && rm -rf wp-docker-template && git clone https://github.com/tigaron/wp-docker-template && cd wp-docker-template && ./start.sh"
 
-          sh "unbuffer aws ssm start-session --target ${instance} --document-name AWS-StartNonInteractiveCommand --parameters command=\"${command}\" --region=ap-southeast-3"
+          sh "aws ssm start-session --target ${instance} --document-name AWS-StartNonInteractiveCommand --parameters command=\"${command}\" --region=ap-southeast-3"
         }
       }
     }
