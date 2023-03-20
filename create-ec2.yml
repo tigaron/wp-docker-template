@@ -1,4 +1,5 @@
-- hosts: localhost
+- name: Create an EC2 instance
+  hosts: localhost
   connection: local
   gather_facts: false
 
@@ -6,54 +7,48 @@
     instance_name: "{{ ec2_instance_name }}"
     instance_type: "{{ ec2_instance_type }}"
     image: ami-0d2da56e47a445b08
+    vpc_id: vpc-062d07a0065406721
+    vpc_subnet_id: subnet-0f0f742503601c2cf
     security_group: demo-server-sg
     region: ap-southeast-3
     count: 1
 
   tasks:
     - name: Create a security group
-      boto3:
-        region: "{{ region }}"
-        service: ec2
-        api_call: create_security_group
-        security_group_name: "{{ security_group }}"
+      amazon.aws.ec2_vpc_security_group:
+        name: "{{ security_group }}"
         description: Security Group for demo server
-        ingress_rules:
-          - IpProtocol: tcp
-            FromPort: 80
-            ToPort: 80
-            IpRanges:
-              - CidrIp: 0.0.0.0/0
-          - IpProtocol: tcp
-            FromPort: 443
-            ToPort: 443
-            IpRanges:
-              - CidrIp: 0.0.0.0/0
-        egress_rules:
-          - IpProtocol: all
-            IpRanges:
-              - CidrIp: 0.0.0.0/0
+        vpc_id: "{{ vpc_id }}"
+        rules:
+          - proto: tcp
+            from_port: 80
+            to_port: 80
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 443
+            to_port: 443
+            cidr_ip: 0.0.0.0/0
+        rules_egress:
+          - proto: all
+            cidr_ip: 0.0.0.0/0
+        region: "{{ region }}"
       register: basic_firewall
 
     - name: Launch the new EC2 Instance
-      boto3:
-        region: "{{ region }}"
-        service: ec2
-        api_call: run_instances
-        image_id: "{{ image }}"
+      amazon.aws.ec2_instance:
+        key_name: "{{ key_name }}"
         instance_type: "{{ instance_type }}"
-        min_count: "{{ count }}"
-        max_count: "{{ count }}"
-        security_group_ids:
-          - "{{ basic_firewall.group_id }}"
+        image_id: "{{ image }}"
+        vpc_subnet_id: "{{ vpc_subnet_id }}"
+        security_group_ids: "{{ [basic_firewall.security_group.id] }}"
+        count: "{{ count }}"
+        region: "{{ region }}"
       register: ec2
 
     - name: Add Tagging to EC2 instance
-      boto3:
+      amazon.aws.ec2_tag:
+        resource_id: "{{ item.id }}"
         region: "{{ region }}"
-        service: ec2
-        api_call: create_tags
-        resources: "{{ ec2.instances | map(attribute='id') | list }}"
         tags:
-          - Key: Name
-            Value: "{{ instance_name }}"
+          Name: "{{ instance_name }}"
+      with_items: "{{ ec2.instances }}"
