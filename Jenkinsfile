@@ -19,7 +19,7 @@ pipeline {
       steps {
         script {
           echo '||| checking existing ec2 instance'
-          def instance = sh(script: "aws ec2 describe-instances --filters \"Name=tag:Name,Values=${params.ec2_instance_name}\" \"Name=instance-state-name,Values=running\" --query \"Reservations[*].Instances[*].[InstanceId]\" --output=text --region=ap-southeast-3", returnStdout: true).trim()
+          def instance = sh(script: "aws ec2 describe-instances --region=ap-southeast-3 --filters \"Name=tag:Name,Values=${params.ec2_instance_name}\" \"Name=instance-state-name,Values=running\" --query \"Reservations[*].Instances[*].[InstanceId]\" --output=text", returnStdout: true).trim()
 
           if (!instance) {
             echo '||| no existing ec2 instance found, creating new instance'
@@ -38,10 +38,10 @@ pipeline {
       steps {
         script {
           echo '||| application deployment started'
-          def instance = sh(script: "aws ec2 describe-instances --filters \"Name=tag:Name,Values=${params.ec2_instance_name}\" --query \"Reservations[*].Instances[*].[InstanceId]\" --output=text --region=ap-southeast-3", returnStdout: true).trim()
+          def instance = sh(script: "aws ec2 describe-instances --region=ap-southeast-3 --filters \"Name=tag:Name,Values=${params.ec2_instance_name}\" --query \"Reservations[*].Instances[*].[InstanceId]\" --output=text", returnStdout: true).trim()
           def command = "cd /home/ssm-user && rm -rf wp-docker-template && git clone https://github.com/tigaron/wp-docker-template && cd wp-docker-template && ./start.sh"
 
-          sh "unbuffer aws ssm start-session --target ${instance} --document-name AWS-StartInteractiveCommand --parameters command=\"${command}\" --region=ap-southeast-3"
+          sh "unbuffer aws ssm start-session --target ${instance} --region=ap-southeast-3 --document-name AWS-StartInteractiveCommand --parameters command=\"${command}\""
           echo '>>> application deployment completed'
         }
       }
