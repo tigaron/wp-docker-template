@@ -31,7 +31,7 @@ pipeline {
       steps {
         script {
           def instance = sh(script: "aws ec2 describe-instances --filters \"Name=tag:Name,Values=${params.ec2_instance_name}\" --query \"Reservations[*].Instances[*].[InstanceId]\" --output=text --region=ap-southeast-3", returnStdout: true).trim()
-          def command = "aws ssm start-session --target ${instance} --region=ap-southeast-3 --document-name AWS-StartInteractiveCommand --parameters command=\"cd /home/ssm-user && rm -rf wp-docker-template && git clone https://github.com/tigaron/wp-docker-template && cd wp-docker-template && docker-compose up -d\""
+          def command = "aws ssm send-command --target ${instance} --region=ap-southeast-3 --document-name AWS-RunShellScript --parameters command=\"cd /home/ssm-user && rm -rf wp-docker-template && git clone https://github.com/tigaron/wp-docker-template && cd wp-docker-template && ./start.sh\""
 
           sh command
         }
