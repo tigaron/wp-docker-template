@@ -11,6 +11,10 @@
     count: 1
 
   tasks:
+    - name: Set AWS Endpoint
+      set_fact:
+        boto_endpoints_path: "{{ playbook_dir }}/endpoints.json"
+
     - name: Create a security group
       local_action: 
         module: ec2_group
@@ -30,7 +34,7 @@
           - proto: all
             cidr_ip: 0.0.0.0/0
       register: basic_firewall
-     
+
     - name: Launch the new EC2 Instance
       local_action: ec2 
                     group={{ security_group }} 
