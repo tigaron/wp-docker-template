@@ -33,9 +33,7 @@ pipeline {
           def instance = sh(script: "aws ec2 describe-instances --filters \"Name=tag:Name,Values=${params.ec2_instance_name}\" --query \"Reservations[*].Instances[*].[InstanceId]\" --output=text --region=ap-southeast-3", returnStdout: true).trim()
           def command = "cd /home/ssm-user && rm -rf wp-docker-template && git clone https://github.com/tigaron/wp-docker-template && cd wp-docker-template && ./start.sh"
 
-          sh "aws ssm start-session --target ${instance} --document-name AWS-StartInteractiveCommand --parameters command=\"${command}\" --region=ap-southeast-3"
-
-          sleep 30
+          sh "unbuffer aws ssm start-session --target ${instance} --document-name AWS-StartNonInteractiveCommand --parameters command=\"${command}\" --region=ap-southeast-3"
         }
       }
     }
